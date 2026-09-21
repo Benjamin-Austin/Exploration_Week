@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gebüsst! — Eine Basler Data Story</title>
+<style>
+  :root{
+    --paper: #EDEAE1;
+    --paper-light: #F6F4EE;
+    --ink: #201D19;
+    --stamp-red: #B5312B;
+    --stamp-blue: #2C4568;
+    --carbon: #A99A7C;
+    --line: rgba(32,29,25,0.18);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.015) 0px, rgba(0,0,0,0.015) 1px, transparent 1px, transparent 3px);
+    color:var(--ink);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    line-height:1.6;
+  }
+  .sheet{
+    max-width:720px;
+    margin:0 auto;
+    padding:0 24px 80px;
+  }
+  .form-mono{
+    font-family: "Courier New", Courier, monospace;
+  }
+
+  /* Header / masthead */
+  header.mast{
+    max-width:720px;
+    margin:0 auto;
+    padding:48px 24px 28px;
+    border-bottom:3px solid var(--ink);
+  }
+  .form-id{
+    font-family:"Courier New", monospace;
+    font-size:0.75rem;
+    letter-spacing:0.04em;
+    color:var(--ink);
+    opacity:0.65;
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:22px;
+  }
+  h1.title{
+    font-size:clamp(2.4rem, 8vw, 3.6rem);
+    line-height:0.98;
+    margin:0 0 14px;
+    font-weight:700;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    font-size:1.05rem;
+    max-width:46ch;
+    opacity:0.8;
+    margin:0;
+  }
+
+  /* Body typography */
+  .sheet p{
+    font-size:1.08rem;
+    max-width:64ch;
+    margin:0 0 1.15em;
+  }
+  .sheet h2{
+    font-size:1.5rem;
+    margin:2.6em 0 0.7em;
+    padding-top:0.2em;
+    border-top:1px solid var(--line);
+  }
+  .sheet h2:first-of-type{ border-top:none; margin-top:1.6em; }
+  .lede{
+    font-size:1.22rem;
+    max-width:60ch;
+  }
+  .signoff{
+    margin-top:3em;
+    padding-top:1.4em;
+    border-top:1px solid var(--line);
+    font-size:0.98rem;
+    opacity:0.85;
+  }
+
+  /* Stamp */
+  .stamp{
+    display:inline-block;
+    font-family:"Courier New", monospace;
+    font-weight:700;
+    letter-spacing:0.06em;
+    padding:5px 14px;
+    border:3px solid var(--stamp-red);
+    color:var(--stamp-red);
+    transform:rotate(-4deg);
+    border-radius:4px;
+    text-transform:uppercase;
+  }
+  .stamp.blue{ border-color:var(--stamp-blue); color:var(--stamp-blue); transform:rotate(3deg); }
+
+  /* Quiz card */
+  .formular{
+    background:var(--paper-light);
+    border:1px solid var(--line);
+    border-radius:2px;
+    padding:28px 24px;
+    margin:28px 0 40px;
+    box-shadow: 4px 4px 0 rgba(32,29,25,0.08);
+  }
+  .formular-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    border-bottom:2px dashed var(--line);
+    padding-bottom:14px;
+    margin-bottom:18px;
+  }
+  .formular-head .kap{
+    font-family:"Courier New", monospace;
+    font-size:0.78rem;
+    letter-spacing:0.05em;
+    opacity:0.6;
+  }
+  .formular-head h3{
+    margin:2px 0 0;
+    font-size:1.25rem;
+  }
+
+  .row{
+    display:grid;
+    grid-template-columns: minmax(160px, 1fr) minmax(0, auto);
+    gap:10px 14px;
+    align-items:start;
+    padding:13px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .row:last-child{ border-bottom:none; }
+  .row .label{ font-size:1rem; }
+  .row .answer-col{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:6px;
+    min-width:0;
+  }
+  .row .toggle,
+  .row select,
+  .row input{ justify-self:end; }
+  .row .verdict,
+  .row .amt-answer{
+    max-width:220px;
+    overflow-wrap:anywhere;
+  }
+  .row .verdict{
+    font-family:"Courier New", monospace;
+    font-size:0.85rem;
+    font-weight:700;
+    white-space:normal;
+    text-align:right;
+  }
+  .verdict.ok{ color:#3D6B4C; }
+  .verdict.no{ color:var(--stamp-red); }
+  .verdict.skip{ color:rgba(32,29,25,0.55); }
+  .form-summary{
+    font-family:"Courier New", monospace;
+    font-size:0.82rem;
+    margin:20px 0 0;
+    padding-top:14px;
+    border-top:1px dashed var(--line);
+    color:rgba(32,29,25,0.7);
+  }
+
+  .toggle{
+    display:flex;
+    border:1.5px solid var(--ink);
+    border-radius:20px;
+    overflow:hidden;
+    font-family:"Courier New", monospace;
+    font-size:0.8rem;
+  }
+  .toggle button{
+    border:none;
+    background:transparent;
+    padding:7px 14px;
+    cursor:pointer;
+    color:var(--ink);
+    font-family:inherit;
+    font-size:inherit;
+  }
+  .toggle button.active{ background:var(--ink); color:var(--paper-light); }
+  .toggle button:disabled{
+    opacity:1;
+    cursor:default;
+    color:rgba(32,29,25,0.55);
+    background:rgba(32,29,25,0.04);
+  }
+  .toggle button.active:disabled{
+    background:var(--ink);
+    color:var(--paper-light);
+  }
+  .toggle button:not(.active):disabled{
+    color:rgba(32,29,25,0.55);
+    background:rgba(32,29,25,0.04);
+  }
+  .toggle button:first-child{ border-right:1.5px solid var(--ink); }
+
+  select, input[type=number]{
+    font-family:"Courier New", monospace;
+    font-size:0.95rem;
+    padding:6px 10px;
+    border:1.5px solid var(--ink);
+    border-radius:3px;
+    background:var(--paper-light);
+    color:var(--ink);
+  }
+  select{
+    width:auto;
+    min-width:130px;
+    max-width:100%;
+  }
+  input[type=number]{
+    width:96px;
+  }
+
+  .amt-answer{
+    font-family:"Courier New", monospace;
+    font-weight:700;
+  }
+
+  button.cta{
+    font-family:"Helvetica Neue", Arial, sans-serif;
+    font-weight:700;
+    font-size:0.95rem;
+    background:var(--ink);
+    color:var(--paper-light);
+    border:none;
+    padding:12px 22px;
+    border-radius:3px;
+    cursor:pointer;
+    margin-top:6px;
+  }
+  button.cta:hover{ background:#3a352d; }
+  button.cta:disabled{ opacity:0.35; cursor:default; }
+
+  .hidden{ display:none !important; }
+
+  .total-box{
+    margin-top:20px;
+    padding:20px;
+    background:var(--ink);
+    color:var(--paper-light);
+    border-radius:3px;
+    text-align:center;
+  }
+  .total-box .num{
+    font-size:2.4rem;
+    font-weight:700;
+    font-family:"Courier New", monospace;
+    display:block;
+    margin-top:4px;
+  }
+
+  /* Charts */
+  .chart-block{
+    margin:30px 0 44px;
+  }
+  .chart-block .caption{
+    font-size:0.92rem;
+    opacity:0.7;
+    max-width:56ch;
+    margin-top:10px;
+  }
+  .how-it-works{
+    margin:0.4em 0 1.8em;
+    padding-left:1.25rem;
+    max-width:58ch;
+    color:rgba(32,29,25,0.82);
+  }
+  .how-it-works li{
+    margin:0.2em 0;
+  }
+  .bar-row{
+    display:grid;
+    grid-template-columns: 130px 1fr 70px;
+    align-items:center;
+    gap:10px;
+    margin-bottom:9px;
+    font-size:0.92rem;
+  }
+  .bar-track{
+    background:rgba(32,29,25,0.08);
+    border-radius:2px;
+    height:22px;
+    position:relative;
+    overflow:hidden;
+  }
+  .bar-fill{
+    height:100%;
+    background:var(--stamp-blue);
+    border-radius:2px 0 0 2px;
+  }
+  .bar-fill.accent{ background:var(--stamp-red); }
+  .bar-value{
+    font-family:"Courier New", monospace;
+    text-align:right;
+    font-size:0.85rem;
+  }
+  .line-chart{ width:100%; height:auto; }
+
+  footer.mast{
+    max-width:720px;
+    margin:0 auto;
+    padding:20px 24px 60px;
+    font-size:0.85rem;
+    opacity:0.6;
+  }
+
+  @media (max-width:520px){
+    .row{ grid-template-columns:1fr; gap:8px; }
+    .row .answer-col{ align-items:flex-start; width:100%; }
+    .row .toggle,
+    .row select{ justify-self:start; }
+    .row .verdict,
+    .row .amt-answer{ text-align:left; max-width:100%; }
+    .bar-row{ grid-template-columns:90px 1fr 55px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="mast">
+  <div class="form-id">
+    <span>Benjamin Austin</span>
+    <span>21. September 2026</span>
+  </div>
+  <h1 class="title">Gebüsst!</h1>
+  <p class="subtitle">Du hast die Tat wahrscheinlich schon begangen.</p> 
+  <p class="subtitle">Hier erfährst du nur, was es dich gekostet hätte.</p>
+</header>
+
+<main class="sheet">
+  <p class="lede">Wie ich haben viele Menschen sicherlich schon einmal eine Busse bekommen für etwas, das sich vielleicht im ersten Moment als völlig unverständlich anfühlte. Ich habe dazumals mit meinem Fahrrad ein stehendes Tram überholt, mit drei weiteren Basler Velomäusen, als anscheinend noch eine Türe offen war. Mich hat es im Nachhinein vor allem genervt, da eigentlich auf der anderen Seite eine rote Ampel hätte sein sollen und ich nicht wusste, dass dies überhaupt ein Vergehen ist. Die Antwort darauf wurde mir allerdings ziemlich schnell mitgeteilt:</p>
+
+  <img src="Vorschau.svg" alt="Vorschau zum Thema Ordnungsbussen" style="display:block; width:100%; max-width:100%; height:auto; margin:0 0 1.2em;">
+
+  <p>Klassiker. Stimmt.</p>
+  <p>Um mich also von meiner Unwissenheit zu befreien, habe ich mich an die Arbeit gemacht und mich genauer mit den Ordnungsbussen auseinandergesetzt. Ordnungsbussen sind gewissermassen die Preisliste für kleinere Gesetzesverstösse: Wer einen klar definierten Tatbestand erfüllt, bezahlt einen festgelegten Betrag, ohne dass gleich ein grosser Gerichtsprozess daraus entsteht. Die Schweiz führt dafür eine nationale Bussenliste. Zusätzlich gibt es kantonale Regelungen und Basel-Stadt hat ebenfalls zahlreiche eigene Tatbestände definiert.</p>
+
+  <p><b>Soweit, so unspektakulär.</b></p>
+  <p>Doch je länger ich mich durch die Bussenlisten gearbeitet habe, desto unterhaltsamer wurde es. Originelle Tatbestände, schwer schätzbare Bussenhöhen und die Realisation, dass man in seinem eigenen Leben vielleicht mehr Vergehen begangen hat, als man zuvor gedacht hätte. Das alles hat mich dazu gebracht, dich herauszufordern.</p>
+  <h2>So funktioniert's</h2>
+  <p>Die Herausforderung läuft in drei kurzen Runden:</p>
+  <ul class="how-it-works">
+    <li>Zuerst schätzt du, welcher Tatbestand überhaupt existiert;</li>
+    <li>Dann prüfst du, was die echten Fälle kosten;</li>
+    <li>Am Ende gibst du an, wie oft du selbst schon so etwas getan hast und siehst, was es dich hypothetisch schon gekostet hätte.</li>
+  </ul>
+
+  <div class="formular" id="quiz">
+    <div class="formular-head">
+      <div>
+        <div class="kap">RUNDE 1 / 3</div>
+        <h3>Welcher Tatbestand existiert wirklich?</h3>
+      </div>
+    </div>
+    <div id="round1-rows"></div>
+    <button class="cta" id="btn-check-exist">Tatbestände aufklären</button>
+    <button class="cta hidden" id="btn-to-round2">Weiter →</button>
+  </div>
+
+  <div class="formular hidden" id="round2">
+    <div class="formular-head">
+      <div>
+        <div class="kap">RUNDE 2 / 3</div>
+        <h3>Was kostet's? (nur die echten Tatbestände)</h3>
+      </div>
+    </div>
+    <div id="round2-rows"></div>
+    <button class="cta" id="btn-check-amounts" disabled>Beträge prüfen lassen</button>
+    <button class="cta hidden" id="btn-to-round3">Weiter →</button>
+  </div>
+
+  <div class="formular hidden" id="round3">
+    <div class="formular-head">
+      <div>
+        <div class="kap">RUNDE 3 / 3</div>
+        <h3>Hand aufs Herz: Wie oft hast du selbst schon dagegen verstossen?</h3>
+      </div>
+    </div>
+    <div id="round3-rows"></div>
+    <button class="cta" id="btn-calc">Ausrechnen</button>
+    <div class="total-box hidden" id="total-box">
+      Dein persönliches Bussen-Total wäre gewesen:
+      <span class="num" id="total-num">CHF 0.–</span>
+    </div>
+  </div>
+
+  <h2>Und wie sieht's im ganzen Kanton aus?</h2>
+  <p>Genug von deinem persönlichen Sündenregister, wie schlagen sich eigentlich alle anderen? Der öffentliche Bussen-Datensatz von Basel-Stadt gibt darüber Auskunft.</p>
+
+  <div class="chart-block">
+    <h3 style="margin-bottom:2px;">Bussen nach Wochentag (2025)</h3>
+    <div id="chart-weekday"></div>
+    <p class="caption">Der Sonntag ist mit rund 14'100 Bussen der Tag mit den wenigsten Verstössen im Jahr 2025.</p>
+  </div>
+
+  <div class="chart-block">
+    <h3 style="margin-bottom:2px;">Bussen nach Fahrzeug- bzw. Personenkategorie</h3>
+    <div id="chart-category"></div>
+    <p class="caption">Der Personenwagen dominiert mit rund 154'000 Bussen die Liste bei Weitem, gefolgt von Lieferwagen, Motorrädern, Personen und dem Fahrrad.</p>
+  </div>
+
+  <div class="chart-block">
+    <h3 style="margin-bottom:2px;">Bussen pro Jahr, 2020–2025</h3>
+    <div id="chart-year"></div>
+    <p class="caption">Von rund 247'000 Bussen im Jahr 2020 auf noch etwa 175'000 im Jahr 2025, ist ein spürbarer Rückgang zu erkennen. Werden wir alle disziplinierter, 
+      oder wird schlicht weniger kontrolliert? Die Daten allein beantworten das leider nicht. 
+      Nach Anfrage beim Kanton Basel-Stadt erfuhr ich, dass es sich beim Datensatz nur um bereits bezahlte Bussen handelt. 
+      Es gibt trotzdem eine Abnahme um etwa 20 % vom Jahr 2022 zum Jahr 2023.
+      Vor allem die Kategorie «Motorfahrzeugführer: Fahrverkehr, davon Geschwindigkeitsüberschreitung» ist dabei stark gesunken. Der genaue Grund dafür konnte nicht ermittelt werden.</p>
+  </div>
+
+  <h2>Fazit</h2>
+
+  <p>Unwissenheit schützt vor Strafe nicht. Nach ein paar Wochen in den Bussenlisten muss ich zugeben, dass der Satz zwar stimmt, aber nur die halbe Geschichte erzählt. Unwissenheit ist hier nämlich weniger eine Ausrede als ein Normalzustand. Kaum jemand weiss auswendig, dass das Füttern von Tauben hundert Franken kostet, der Slalom an der wartenden Kolonne vorbei aber nur zwanzig.
+  Die meisten scheitern nicht daran, dass sie die Regeln ablehnen, sondern daran, dass sie sie gar nicht kennen oder die Beträge völlig anders einschätzen.</p>
+
+  <p>Im Kanton zeigt sich dasselbe aus der Vogelperspektive. Rund 175'000 Bussen im Jahr 2025, verteilt über alle Wochentage und ganz klar dominiert vom Personenwagen. </p>
+
+  <p>Die bittere Wahrheit der Geschichte ist: Unwissenheit schützt noch immer nicht vor Strafe. Wissen dafür ziemlich zuverlässig vor der Busse. Ich hoffe, dass diese Geschichte dabei hilft, dieses Wissen aufzubauen.</p>
+
+  <p class="signoff">Ein grosses Dankeschön an den Kanton Basel-Stadt und seine Mitarbeitenden, welche diesen und viele andere Datensätze kontinuierlich sammeln, aufbereiten und im Rahmen der Open-Government-Data-Initiative gratis und öffentlich zur Verfügung stellen!</p>
+
+</main>
+
+<footer class="mast">
+  Quelle: Kanton Basel-Stadt, Open Data Portal (data.bs.ch), Datensatz „Ordnungsbussen" (ID 100058), Stand: 01.09.2026
+</footer>
+
+<script>
+const TATBESTAENDE = [
+  { id:1, name:"Reservieren von Parkraum mittels Aufstellen von privaten Dingen", real:true, amount:40 },
+  { id:2, name:"Nichtbenützen des Fussgängerstreifens (wenn er weniger als 50 m entfernt ist)", real:true, amount:10 },
+  { id:3, name:"Skateboardfahren auf dem Basler Marktplatz", real:false, amount:null },
+  { id:4, name:"Füttern von frei lebenden Tauben", real:true, amount:100 },
+  { id:5, name:"Baden im Rhein ausserhalb markierter Badezonen", real:false, amount:null },
+  { id:6, name:"Als Fussgänger bei Rot über die Ampel gehen", real:true, amount:20 },
+  { id:7, name:"Rauchen an einer Tramhaltestelle", real:false, amount:null },
+  { id:8, name:"Eine wartende Autokolonne per Slalom überholen (mit dem Velo)", real:true, amount:20 },
+];
+
+const round1Rows = document.getElementById('round1-rows');
+const round2Rows = document.getElementById('round2-rows');
+const round3Rows = document.getElementById('round3-rows');
+const round1Summary = document.createElement('p');
+const round2Summary = document.createElement('p');
+const userGuesses = {};   // id -> 'exists' | 'not'
+const userAmounts = {};   // id -> number
+const userCounts = {};    // id -> number
+const round1RowById = new Map();
+const round2RowById = new Map();
+let round1Resolved = false;
+let round2Resolved = false;
+let round2Built = false;
+let round3Built = false;
+
+round1Summary.id = 'round1-summary';
+round1Summary.className = 'form-summary hidden';
+round1Rows.insertAdjacentElement('afterend', round1Summary);
+
+round2Summary.id = 'round2-summary';
+round2Summary.className = 'form-summary hidden';
+round2Rows.insertAdjacentElement('afterend', round2Summary);
+
+function buildRound1Rows() {
+  round1Rows.innerHTML = '';
+  round1RowById.clear();
+
+  TATBESTAENDE.forEach(t => {
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.dataset.id = String(t.id);
+    row.innerHTML = `
+      <div class="label">${t.name}</div>
+      <div class="answer-col">
+        <div class="toggle" data-id="${t.id}">
+          <button type="button" data-choice="exists">existiert</button>
+          <button type="button" data-choice="not">gibt's nicht</button>
+        </div>
+      </div>
+    `;
+    round1RowById.set(String(t.id), row);
+    round1Rows.appendChild(row);
+  });
+
+  round1Rows.querySelectorAll('.toggle').forEach(toggle => {
+    toggle.addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const key = String(toggle.dataset.id);
+      userGuesses[key] = btn.dataset.choice;
+      toggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+}
+
+function updateAmountCheckButtonState() {
+  const btn = document.getElementById('btn-check-amounts');
+  if (!btn) return;
+  const allFilled = TATBESTAENDE.filter(t => t.real).every(t => {
+    const value = userAmounts[String(t.id)];
+    return value !== undefined && value !== null && value !== '' && !Number.isNaN(value);
+  });
+  btn.disabled = !allFilled;
+}
+
+document.getElementById('btn-check-amounts').disabled = true;
+
+function buildRound2Rows() {
+  if (round2Built) return;
+  round2Rows.innerHTML = '';
+  round2RowById.clear();
+
+  TATBESTAENDE.filter(t => t.real).forEach(t => {
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.dataset.id = String(t.id);
+    let options = '<option value="" disabled selected>wählen</option>';
+    for (let v = 10; v <= 100; v += 10) {
+      options += `<option value="${v}">CHF ${v}.–</option>`;
+    }
+    row.innerHTML = `
+      <div class="label">${t.name}</div>
+      <div class="answer-col">
+        <select data-id="${t.id}">${options}</select>
+      </div>
+    `;
+    round2RowById.set(String(t.id), row);
+    round2Rows.appendChild(row);
+  });
+
+  round2Built = true;
+  updateAmountCheckButtonState();
+}
+
+buildRound1Rows();
+
+document.getElementById('btn-check-exist').addEventListener('click', () => {
+  if (round1Resolved) return;
+  round1Resolved = true;
+
+  TATBESTAENDE.forEach(t => {
+    const row = round1RowById.get(String(t.id));
+    if (!row) return;
+
+    const key = String(t.id);
+    const guess = userGuesses[key];
+    const expected = t.real ? 'exists' : 'not';
+    const verdict = document.createElement('span');
+    verdict.className = 'verdict';
+
+    if (guess === undefined) {
+      verdict.classList.add('skip');
+      verdict.textContent = `– nicht beantwortet — ${t.real ? 'existiert wirklich' : 'frei erfunden'}`;
+    } else if (guess === expected) {
+      verdict.classList.add('ok');
+      verdict.textContent = `✓ ${t.real ? 'richtig — existiert wirklich' : 'richtig — frei erfunden'}`;
+    } else {
+      verdict.classList.add('no');
+      verdict.textContent = `✗ ${t.real ? 'falsch — existiert wirklich' : 'falsch — frei erfunden'}`;
+    }
+
+    row.querySelectorAll('.toggle button').forEach(b => {
+      b.disabled = true;
+      if (b.classList.contains('active')) {
+        b.classList.add('active');
+      }
+    });
+    row.querySelector('.answer-col').appendChild(verdict);
+  });
+
+  const correctCount = TATBESTAENDE.filter(t => userGuesses[String(t.id)] === (t.real ? 'exists' : 'not')).length;
+  round1Summary.textContent = `${correctCount} von ${TATBESTAENDE.length} richtig erkannt.`;
+  round1Summary.classList.remove('hidden');
+
+  document.getElementById('btn-check-exist').classList.add('hidden');
+  document.getElementById('btn-to-round2').classList.remove('hidden');
+});
+
+document.getElementById('btn-to-round2').addEventListener('click', () => {
+  if (round2Built) return;
+  buildRound2Rows();
+  document.getElementById('round2').classList.remove('hidden');
+  document.getElementById('round2').scrollIntoView({behavior:'smooth', block:'start'});
+  document.getElementById('btn-to-round2').classList.add('hidden');
+});
+
+round2Rows.addEventListener('change', e => {
+  if (e.target.tagName === 'SELECT') {
+    const id = String(e.target.dataset.id);
+    const value = e.target.value;
+    if (value === '') {
+      delete userAmounts[id];
+    } else {
+      userAmounts[id] = Number(value);
+    }
+    updateAmountCheckButtonState();
+  }
+});
+
+document.getElementById('btn-check-amounts').addEventListener('click', () => {
+  if (round2Resolved) return;
+  round2Resolved = true;
+
+  let correctCount = 0;
+  TATBESTAENDE.filter(t => t.real).forEach(t => {
+    const row = round2RowById.get(String(t.id));
+    const guessedValue = userAmounts[String(t.id)];
+    const span = document.createElement('span');
+    span.className = 'amt-answer';
+
+    if (guessedValue === undefined || guessedValue === null || Number.isNaN(guessedValue)) {
+      span.style.color = 'rgba(32,29,25,0.55)';
+      span.textContent = `nicht beantwortet — tatsächlich: CHF ${t.amount}.–`;
+    } else {
+      const correct = Number(guessedValue) === Number(t.amount);
+      if (correct) {
+        correctCount += 1;
+        span.style.color = '#3D6B4C';
+        span.textContent = `richtig geraten! (CHF ${t.amount}.–)`;
+      } else {
+        span.style.color = 'var(--stamp-red)';
+        span.textContent = `tatsächlich: CHF ${t.amount}.– (du: CHF ${guessedValue}.–)`;
+      }
+    }
+
+    row.querySelector('.answer-col').appendChild(span);
+  });
+
+  round2Summary.textContent = `${correctCount} von ${TATBESTAENDE.filter(t => t.real).length} Beträge getroffen.`;
+  round2Summary.classList.remove('hidden');
+
+  document.getElementById('btn-check-amounts').classList.add('hidden');
+  document.getElementById('btn-to-round3').classList.remove('hidden');
+});
+
+document.getElementById('btn-to-round3').addEventListener('click', () => {
+  if (round3Built) return;
+  round3Built = true;
+  round3Rows.innerHTML = '';
+
+  TATBESTAENDE.filter(t => t.real).forEach(t => {
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.dataset.id = String(t.id);
+    row.innerHTML = `
+      <div class="label">${t.name} <span class="amt-answer">— CHF ${t.amount}.–</span></div>
+      <input type="number" min="0" value="0" data-id="${t.id}" placeholder="Anzahl">
+    `;
+    round3Rows.appendChild(row);
+  });
+
+  document.getElementById('round3').classList.remove('hidden');
+  document.getElementById('round3').scrollIntoView({behavior:'smooth', block:'start'});
+  document.getElementById('btn-to-round3').classList.add('hidden');
+});
+
+round3Rows.addEventListener('input', e => {
+  if (e.target.tagName === 'INPUT') {
+    const id = String(e.target.dataset.id);
+    const raw = Number(e.target.value);
+    if (e.target.value === '') {
+      userCounts[id] = 0;
+      return;
+    }
+    const safe = Number.isFinite(raw) ? Math.max(0, raw) : 0;
+    userCounts[id] = safe;
+    e.target.value = String(safe);
+  }
+});
+
+document.getElementById('btn-calc').addEventListener('click', () => {
+  let total = 0;
+  TATBESTAENDE.filter(t => t.real).forEach(t => {
+    const count = Math.max(0, Number(userCounts[String(t.id)] || 0));
+    total += count * t.amount;
+  });
+  document.getElementById('total-num').textContent = `CHF ${total}.–`;
+  document.getElementById('total-box').classList.remove('hidden');
+});
+
+// --- Charts ---
+function renderBars(containerId, data, accentIdx = -1){
+  const el = document.getElementById(containerId);
+  const max = Math.max(...data.map(d => d.value));
+  data.forEach((d, i) => {
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+    const pct = (d.value / max) * 100;
+    row.innerHTML = `
+      <div>${d.label}</div>
+      <div class="bar-track"><div class="bar-fill ${i===accentIdx ? 'accent' : ''}" style="width:${pct}%"></div></div>
+      <div class="bar-value">${d.display}</div>
+    `;
+    el.appendChild(row);
+  });
+}
+
+const weekdayData = [
+  {label:'Montag', value:21731, display:"21'731"},
+  {label:'Dienstag', value:29253, display:"29'253"},
+  {label:'Mittwoch', value:28618, display:"28'618"},
+  {label:'Donnerstag', value:26306, display:"26'306"},
+  {label:'Freitag', value:26765, display:"26'765"},
+  {label:'Samstag', value:27961, display:"27'961"},
+  {label:'Sonntag', value:14115, display:"14'115"},
+];
+const weekdayAccentIdx = weekdayData.findIndex(d => d.value === Math.min(...weekdayData.map(item => item.value)));
+renderBars('chart-weekday', weekdayData, weekdayAccentIdx);
+
+renderBars('chart-category', [
+  {label:'Personenwagen', value:154367, display:"154'367"},
+  {label:'Lieferwagen', value:10328, display:"10'328"},
+  {label:'Motorrad', value:5237, display:"5'237"},
+  {label:'Person', value:1401, display:"1'401"},
+  {label:'Fahrrad', value:1068, display:"1'068"},
+], 0);
+
+renderBars('chart-year', [
+  {label:'2020', value:247265, display:"247'265"},
+  {label:'2021', value:227347, display:"227'347"},
+  {label:'2022', value:233160, display:"233'160"},
+  {label:'2023', value:184692, display:"184'692"},
+  {label:'2024', value:188469, display:"188'469"},
+  {label:'2025', value:174749, display:"174'749"},
+]);
+</script>
+
+</body>
+</html>
